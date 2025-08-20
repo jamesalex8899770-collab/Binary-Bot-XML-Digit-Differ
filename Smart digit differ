@@ -1,0 +1,204 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <variables>
+    <variable id="step">Step</variable>
+    <variable id="stake">Stake</variable>
+    <variable id="baseStake">Base Stake</variable>
+  </variables>
+
+  <!-- Initialize values -->
+  <block type="trade" id="trade" x="10" y="20">
+    <field name="MARKET_LIST">volidx</field>
+    <field name="SUBMARKET_LIST">random_index</field>
+    <field name="SYMBOL_LIST">R_100</field>
+    <field name="TRADETYPECAT_LIST">digits</field>
+    <field name="TRADETYPE_LIST">matchesdiffers</field>
+    <field name="TYPE_LIST">DIGITDIFF</field>
+    <field name="CANDLEINTERVAL_LIST">60</field>
+    <statement name="INITIALIZATION">
+      <block type="variables_set">
+        <field name="VAR" id="step">Step</field>
+        <value name="VALUE">
+          <block type="math_number"><field name="NUM">1</field></block>
+        </value>
+        <next>
+          <block type="variables_set">
+            <field name="VAR" id="baseStake">Base Stake</field>
+            <value name="VALUE">
+              <block type="math_number"><field name="NUM">1</field></block>
+            </value>
+            <next>
+              <block type="variables_set">
+                <field name="VAR" id="stake">Stake</field>
+                <value name="VALUE">
+                  <block type="math_number"><field name="NUM">1</field></block>
+                </value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <!-- Trade options depend on step -->
+    <statement name="SUBMARKET">
+      <block type="tradeOptions">
+        <field name="DURATIONTYPE_LIST">t</field>
+        <field name="CURRENCY_LIST">USD</field>
+        <value name="AMOUNT">
+          <block type="variables_get"><field name="VAR" id="stake">Stake</field></block>
+        </value>
+        <value name="DURATION">
+          <block type="procedures_callreturn">
+            <mutation name="getDuration"></mutation>
+          </block>
+        </value>
+        <value name="PREDICTION">
+          <block type="procedures_callreturn">
+            <mutation name="getDigit"></mutation>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+
+  <!-- After purchase results -->
+  <block type="after_purchase" id="afterPurchase" x="10" y="300">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="controls_if">
+        <mutation else="1"></mutation>
+        <value name="IF0">
+          <block type="contract_check_result"><field name="CHECK_RESULT">win</field></block>
+        </value>
+        <statement name="DO0">
+          <!-- Reset stake -->
+          <block type="variables_set">
+            <field name="VAR" id="stake">Stake</field>
+            <value name="VALUE">
+              <block type="variables_get"><field name="VAR" id="baseStake">Base Stake</field></block>
+            </value>
+            <next>
+              <!-- Move to next step (loop 1→6) -->
+              <block type="variables_set">
+                <field name="VAR" id="step">Step</field>
+                <value name="VALUE">
+                  <block type="math_arithmetic">
+                    <field name="OP">ADD</field>
+                    <value name="A">
+                      <block type="variables_get"><field name="VAR" id="step">Step</field></block>
+                    </value>
+                    <value name="B"><block type="math_number"><field name="NUM">1</field></block></value>
+                  </block>
+                </value>
+                <next>
+                  <block type="controls_if">
+                    <value name="IF0">
+                      <block type="logic_compare">
+                        <field name="OP">GT</field>
+                        <value name="A"><block type="variables_get"><field name="VAR" id="step">Step</field></block></value>
+                        <value name="B"><block type="math_number"><field name="NUM">6</field></block></value>
+                      </block>
+                    </value>
+                    <statement name="DO0">
+                      <block type="variables_set">
+                        <field name="VAR" id="step">Step</field>
+                        <value name="VALUE"><block type="math_number"><field name="NUM">1</field></block></value>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <!-- On loss multiply stake ×8 -->
+          <block type="variables_set">
+            <field name="VAR" id="stake">Stake</field>
+            <value name="VALUE">
+              <block type="math_arithmetic">
+                <field name="OP">MULTIPLY</field>
+                <value name="A"><block type="variables_get"><field name="VAR" id="stake">Stake</field></block></value>
+                <value name="B"><block type="math_number"><field name="NUM">8</field></block></value>
+              </block>
+            </value>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+
+  <!-- Helper functions -->
+  <block type="procedures_defreturn" id="getDuration" x="400" y="20">
+    <mutation><arg name="step"></arg></mutation>
+    <field name="NAME">getDuration</field>
+    <statement name="STACK">
+      <block type="controls_switch_case">
+        <value name="SWITCH">
+          <block type="variables_get"><field name="VAR" id="step">Step</field></block>
+        </value>
+        <statement name="CASE0">
+          <value name="CASE"><block type="math_number"><field name="NUM">1</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">1</field></block></value></block></statement>
+        </statement>
+        <statement name="CASE1">
+          <value name="CASE"><block type="math_number"><field name="NUM">2</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">2</field></block></value></block></statement>
+        </statement>
+        <statement name="CASE2">
+          <value name="CASE"><block type="math_number"><field name="NUM">3</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">1</field></block></value></block></statement>
+        </statement>
+        <statement name="CASE3">
+          <value name="CASE"><block type="math_number"><field name="NUM">4</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">2</field></block></value></block></statement>
+        </statement>
+        <statement name="CASE4">
+          <value name="CASE"><block type="math_number"><field name="NUM">5</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">3</field></block></value></block></statement>
+        </statement>
+        <statement name="CASE5">
+          <value name="CASE"><block type="math_number"><field name="NUM">6</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">1</field></block></value></block></statement>
+        </statement>
+      </block>
+    </statement>
+    <value name="RETURN"><block type="math_number"><field name="NUM">1</field></block></value>
+  </block>
+
+  <block type="procedures_defreturn" id="getDigit" x="400" y="320">
+    <mutation><arg name="step"></arg></mutation>
+    <field name="NAME">getDigit</field>
+    <statement name="STACK">
+      <block type="controls_switch_case">
+        <value name="SWITCH">
+          <block type="variables_get"><field name="VAR" id="step">Step</field></block>
+        </value>
+        <statement name="CASE0">
+          <value name="CASE"><block type="math_number"><field name="NUM">1</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">5</field></block></value></block></statement>
+        </statement>
+        <statement name="CASE1">
+          <value name="CASE"><block type="math_number"><field name="NUM">2</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">7</field></block></value></block></statement>
+        </statement>
+        <statement name="CASE2">
+          <value name="CASE"><block type="math_number"><field name="NUM">3</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">3</field></block></value></block></statement>
+        </statement>
+        <statement name="CASE3">
+          <value name="CASE"><block type="math_number"><field name="NUM">4</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">9</field></block></value></block></statement>
+        </statement>
+        <statement name="CASE4">
+          <value name="CASE"><block type="math_number"><field name="NUM">5</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">2</field></block></value></block></statement>
+        </statement>
+        <statement name="CASE5">
+          <value name="CASE"><block type="math_number"><field name="NUM">6</field></block></value>
+          <statement name="DO"><block type="return"><value name="VALUE"><block type="math_number"><field name="NUM">9</field></block></value></block></statement>
+        </statement>
+      </block>
+    </statement>
+    <value name="RETURN"><block type="math_number"><field name="NUM">5</field></block></value>
+  </block>
+</xml>
